@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import optimize
 
+
 import swe_1d
 import fluxes
 import quadrature
@@ -8,9 +9,8 @@ import rk
 
 # Physical parameters
 #
-g = 1.0  # gravity
-inflow_rate = 0.1
-outflow_resistance_coefficient = 0.0  # outflow resistance (1 for reflection, 0 for free flow)
+g = 9.81  # gravity
+inflow_rate = 0.05
 
 tspan = (0.0, 2.0)
 xspan = (-1.0, 1.0)
@@ -20,7 +20,7 @@ def q_bc(t):
     """
     Prescribed inflow rate as a function of time
 
-    :param t:
+    :param t: Time
     :return:
     """
     return inflow_rate * t if t < 1 else inflow_rate  # Constant inflow
@@ -30,10 +30,10 @@ def initial_condition(xx):
     """
     Creates initial conditions for (h, uh).
 
-    :param xx:
+    :param xx: Computational domain
     :return:
     """
-    initial_height = 0.5 * np.ones(xx.shape) - swe_bathymetry(xx)  # water at rest
+    initial_height = 0.2 * np.ones(xx.shape) - swe_bathymetry(xx)  # water at rest
     initial_flow = np.zeros(xx.shape)
 
     ic = np.array((
@@ -53,7 +53,8 @@ def initial_condition(xx):
 #
 def prescribed_inflow(q_in):
     """
-    Maintains a (possibly time-dependent) prescribed rate of flow at the inflow boundary.
+    Maintains a (possibly time-dependent) prescribed rate of flow at the inflow boundary by setting
+    backward characteristics for upwinded values and cell values equal at the leftmost boundary.
 
     :param q_in: A function with time as its single parameter, which should return the rate of flow
                  at a particular time.
@@ -86,44 +87,38 @@ def prescribed_inflow(q_in):
     return _flux_function
 
 
-def resistive_outflow(resistance_coefficient):
-    def _flux_function(u_l, u_r, xx, t, f, f_prime):
-        h_l, q_l = u_l
+def transmissive_outflow(u_l, u_r, xx, t, f, f_prime):
+    """
+    Create a transmissive boundary by setting left and right ("ghost") states the same and computing
+    corresponding local Lax-Friedrichs flux.
 
-        # Forward characteristic
-        #
-        w_f = q_l / h_l + 2 * np.sqrt(g * h_l)
+    For details see Section 9.2.5 of the book:
+    - Eleuterio F. Toro (2001)
+      Shock-Capturing Methods for Free-Surface Shallow Flows
+      1st edition
+      ISBN 0471987662
 
-        # Compute "ghost cell" values
-        #
-        h_r = h_l
-        q_r = h_l * w_f * (1 - resistance_coefficient) - q_l
-
-        # Backward characteristic
-        #
-        w_b = q_r/h_r - 2 * np.sqrt(g * h_r)
-
-        # Upwinded values
-        #
-        # TODO: Figure out why these don't work when local LFF with ghost cell values does
-        #
-        h = (w_f - w_b)**2 / (2*g)
-        q = h/2 * (w_f + w_b)
-
-        return fluxes.lax_friedrichs_flux(u_l, u_r, xx, t, f, f_prime)
-
-    return _flux_function
+    :param u_l:
+    :param u_r:
+    :param xx:
+    :param t:
+    :param f:
+    :param f_prime:
+    :return:
+    """
+    return fluxes.lax_friedrichs_flux(u_l, u_l, xx, t, f, f_prime)
 
 
 eps = 20
+amplitude = 0.01
 
 
 def swe_bathymetry(xx):
-    return -0.05 * xx + 0.1 * np.exp(-np.square(eps*xx))
+    return -0.05 * xx + amplitude * np.exp(-np.square(eps*xx))
 
 
 def swe_bathymetry_derivative(xx):
-    return -0.05 * np.ones(xx.shape) + 0.1 * -2 * np.square(eps) * xx * np.exp(-np.square(eps*xx))
+    return -0.05 * np.ones(xx.shape) + amplitude * -2*np.square(eps)*xx * np.exp(-np.square(eps*xx))
 
 
 # Instantiate solver with bathymetry
@@ -145,16 +140,15 @@ solution = solver.solve(
     initial_condition=initial_condition,
     intercell_flux=fluxes.lax_friedrichs_flux,
     left_boundary_flux=prescribed_inflow(q_bc),
-    right_boundary_flux=resistive_outflow(outflow_resistance_coefficient),
+    right_boundary_flux=transmissive_outflow,
     quad_rule=quadrature.gll,
     **{
         'method': 'RK45',
-        # 'method': rk.SSPRK33,  # Uncomment to use a strong-stability preserving RK method
+        'method': rk.SSPRK33,  # Uncomment to use a strong-stability preserving RK method
         't_eval': np.arange(tspan[0], tspan[1], dt),
         'max_step': dt,  # max time step for ODE solver
         'rtol': 1.0e-6,
         'atol': 1.0e-6,
-
     }
 )
 
