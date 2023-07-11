@@ -1,4 +1,4 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?labpath=src%2Fmain.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?labpath=hedges%2Fmain.ipynb)
 
 # Hyperbolic Educational Discontinuous Galerkin Equation Solver
 
