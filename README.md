@@ -14,7 +14,7 @@ Once you've installed the dependencies listed in `requirements.txt`
 (`pip install -r requirements.txt`), you can simply run `hedges/main.py` to generate a full 
 animation of the SWE:
 
-```python -m hedges/main.py```
+```python hedges/main.py```
 
 This also saves the animation to `swe_1d.gif` for whatever use your heart desires. The 
 `plot_animation` function of the `hedges.hyperbolic_solver_1d.Hyperbolic1DSolver` base class returns 
