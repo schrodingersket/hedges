@@ -13,7 +13,11 @@ g = 9.81  # gravity
 inflow_rate = 0.05
 
 tspan = (0.0, 2.0)
-xspan = (-1.0, 1.0)
+xspan = (-1, 1)
+
+
+def gaussian_runup(z, z0=0.0, eps=1.0, height=1.0):
+    return height*np.exp(-np.square(eps*(min(z, z0) - z0)))
 
 
 def q_bc(t):
@@ -109,16 +113,16 @@ def transmissive_outflow(u_l, u_r, xx, t, f, f_prime):
     return fluxes.lax_friedrichs_flux(u_l, u_l, xx, t, f, f_prime)
 
 
-eps = 20
-amplitude = 0.01
+shape = 20
+amplitude = -0.01
 
 
 def swe_bathymetry(xx):
-    return -0.05 * xx + amplitude * np.exp(-np.square(eps*xx))
+    return -0.05 * xx + amplitude * np.arctan(shape*xx)
 
 
 def swe_bathymetry_derivative(xx):
-    return -0.05 * np.ones(xx.shape) + amplitude * -2*np.square(eps)*xx * np.exp(-np.square(eps*xx))
+    return -0.05 * np.ones(xx.shape) + amplitude * shape/(1 + np.square(shape*xx)) * np.exp(-np.square(shape*xx))
 
 
 # Instantiate solver with bathymetry
@@ -136,7 +140,7 @@ solution = solver.solve(
     tspan=tspan,
     xspan=xspan,
     cell_count=16,
-    polydeg=5,
+    polydeg=3,
     initial_condition=initial_condition,
     intercell_flux=fluxes.lax_friedrichs_flux,
     left_boundary_flux=prescribed_inflow(q_bc),
@@ -144,9 +148,9 @@ solution = solver.solve(
     quad_rule=quadrature.gll,
     **{
         'method': 'RK45',
-        'method': rk.SSPRK33,  # Uncomment to use a strong-stability preserving RK method
+        # 'method': rk.SSPRK33,  # Uncomment to use a strong-stability preserving RK method
         't_eval': np.arange(tspan[0], tspan[1], dt),
-        'max_step': dt,  # max time step for ODE solver
+        # 'max_step': dt,  # max time step for ODE solver
         'rtol': 1.0e-6,
         'atol': 1.0e-6,
     }
