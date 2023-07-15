@@ -12,7 +12,7 @@ g = 1.0  # gravity
 
 # Domain
 #
-tspan = (0.0, 30.0)
+tspan = (0.0, 5.0)
 xspan = (-1, 1)
 
 # Bathymetry parameters
@@ -106,22 +106,25 @@ if __name__ == '__main__':
         right_boundary_flux=bc.transmissive_outflow(surface_flux=surface_flux),
         quad_rule=quadrature.gll,
         **{
-            # 'method': 'RK45',
-            'method': rk.SSPRK33,  # Uncomment to use a strong-stability preserving RK method
+            'method': rk.SSPRK33,
             't_eval': np.arange(tspan[0], tspan[1], dt),
-            # 'max_step': dt,  # max time step for ODE solver
+            'max_step': dt,  # max time step for ODE solver
             'rtol': 1.0e-6,
             'atol': 1.0e-6,
         }
     )
-    
+
+    # Plot solution animation
+    #
     ani, plt = solver.plot_animation(solution, frame_interval=t_interval_ms)
-    
-    # movie_name = 'swe_1d.gif'
-    # print('Writing movie to {}...'.format(movie_name))
-    
-    # ani.save(movie_name, progress_callback=lambda i, n: print(
-    #     f'Saving animation frame {i + 1}/{n}'
-    # ) if i % 25 == 0 else None)
-    
     plt.show()
+    
+    # Save animation to file
+    #
+    movie_name = 'swe_1d.gif'
+    print('Writing movie to {}...'.format(movie_name))
+    
+    ani.save(movie_name, progress_callback=lambda i, n: print(
+        f'Saving animation frame {i + 1}/{n}'
+    ) if i % 50 == 0 else None)
+    print('Animation written to {}.'.format(movie_name))

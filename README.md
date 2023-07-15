@@ -1,4 +1,4 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?labpath=hedges%2Fmain.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?urlpath=notebooks%2Fhedges%2Fmain.ipynb)
 
 # Hyperbolic Educational Discontinuous Galerkin Equation Solver
 
@@ -26,7 +26,7 @@ optionally override the default plotting behavior, with a reference implementati
 `hedges.swe_1d.ShallowWater1D`.
 
 A Jupyter notebook is provided in this repository and is available at 
-[BinderHub](https://mybinder.org/v2/gh/schrodingersket/dg/HEAD?labpath=src%2Fmain.ipynb) to experiment with.
+[BinderHub](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?urlpath=notebooks%2Fhedges%2Fmain.ipynb) to experiment with.
 
 ## Extending the Solver
 

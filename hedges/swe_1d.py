@@ -170,7 +170,7 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
         u_i = soln.y[:, n].reshape(soln_shape)
         var_names = {
             0: 'h',
-            1: 'v'
+            1: 'hv'
         }
 
         # Plot each solution quantity
