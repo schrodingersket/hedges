@@ -176,7 +176,7 @@ class Hyperbolic1DSolver(abc.ABC):
         def uprime(t, u_col, ivp_args):
             if t > time_buckets[ivp_args['bucket']]:
                 ivp_args['bucket'] = ivp_args['bucket'] + 1
-                print('Computing u\' at t={}'.format(t))
+                print('Computing du/dt at t={}'.format(t))
 
             # Reshape column vector into cell-node matrix.
             #
