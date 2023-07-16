@@ -130,7 +130,7 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
                 axes[i].plot(domain.flatten(), bb.flatten())
                 plot_min = min(uu[:, i].min(), bb.min())
                 plot_max = max(uu[:, i].max(), bb.max())
-            elif i == 1:
+            else:
                 # Plot flow
                 #
                 plot_min = (uu[:, i]).min()
@@ -196,14 +196,13 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
         #
         return [(line,) for line in plot_lines]
 
-
     @staticmethod
     def surface_flux_fjordholm_etal(gravity=9.81):
         """
         Total energy conservative (mathematical entropy for shallow water equations). When the bottom topography
         is nonzero this should only be used as a surface flux otherwise the scheme will not be well-balanced.
         For well-balancedness in the volume flux use [`flux_wintermeyer_etal`](@ref).
-        
+
         Details are available in Eq. (4.1) in the paper:
         - Ulrik S. Fjordholm, Siddhartha Mishr and Eitan Tadmor (2011)
           Well-balanced and energy stable schemes for the shallow water equations with discontinuous topography
@@ -215,19 +214,19 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
             # Unpack left and right state
             h_l, q_l = u_l
             h_r, q_r = u_r
-        
+
             v_l = q_l / h_l
             v_r = q_r / h_r
-        
+
             # Average each factor of products in flux
             h_avg = 0.5 * (h_l + h_r)
             v_avg = 0.5 * (v_l + v_r)
             p_avg = 0.25 * gravity * (np.square(h_l) + np.square(h_r))
-        
+
             # Calculate fluxes depending on orientation
             f1 = h_avg * v_avg
             f2 = f1 * v_avg + p_avg
-        
+
             return np.array((f1, f2))
         return _flux_function
 
@@ -237,7 +236,7 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
         Total energy conservative (mathematical entropy for shallow water equations) split form.
         When the bottom topography is nonzero this scheme will be well-balanced when used as a `volume_flux`.
         The `surface_flux` should still use, e.g., [`flux_fjordholm_etal`](@ref).
-        
+
         Further details are available in Theorem 1 of the paper:
         - Niklas Wintermeyer, Andrew R. Winters, Gregor J. Gassner and David A. Kopriva (2017)
           An entropy stable nodal discontinuous Galerkin method for the two dimensional
@@ -247,27 +246,27 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
         :param gravity: Gravitational constant.
         """
         def _flux_function(u_l, u_r, xx, t, f, f_prime):
-    
+
             # Unpack left and right state
             #
             h_l, q_l = u_l
             h_r, q_r = u_r
-        
+
             # Get the velocities on either side
             #
             v_l = q_l / h_l
             v_r = q_r / h_r
-        
+
             # Average each factor of products in flux
             #
             v_avg = 0.5 * (v_l + v_r)
             p_avg = 0.5 * gravity * h_l * h_r
-        
+
             # Calculate fluxes depending on orientation
             #
             f1 = 0.5 * (q_l + q_r)
             f2 = f1 * v_avg + p_avg
-        
+
             return np.array((f1, f2))
         return _flux_function
 
@@ -276,7 +275,7 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
         """
         Maintains a (possibly time-dependent) prescribed rate of flow at the inflow boundary by setting
         backward characteristics for upwinded values and cell values equal at the leftmost boundary.
-    
+
         :param q_in: A function with time as its single parameter, which should return the rate of flow
                      at a particular time.
         :param gravity: Gravitational constant.
@@ -285,15 +284,15 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
         """
         def _flux_function(u_l, u_r, xx, t, f, f_prime):
             h_r, q_r = u_r
-    
+
             # Backward characteristic
             #
             w_b = q_r / h_r - 2 * np.sqrt(gravity * h_r)
-    
+
             # Evaluate prescribed bathymetry value at t
             #
             q = q_in(t)
-    
+
             # We solve for the square root of h to avoid numerical issues with Newton's method
             #
             sqrt_h = optimize.newton(
@@ -302,9 +301,9 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
                 # fprime=lambda hh: -2 * q / hh ** 3 - 2 * np.sqrt(g),
                 maxiter=500
             )
-    
+
             h = np.square(sqrt_h)
-    
+
             return surface_flux(np.array((h, q)), u_r, xx, t, f, f_prime)
-    
+
         return _flux_function
