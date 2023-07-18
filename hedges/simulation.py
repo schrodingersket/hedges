@@ -61,8 +61,9 @@ class SWEFlowRunner:
         """
         tt = np.array(t)
         return self.inflow_amplitude * np.exp(
-            -np.square(np.minimum(tt, self.inflow_peak_time * np.ones(tt.shape))
-                       - self.inflow_peak_time) / (2 * np.square(self.inflow_smoothness))
+            -np.square(
+                np.minimum(tt, self.inflow_peak_time * np.ones(tt.shape)) - self.inflow_peak_time
+            ) / (2 * np.square(self.inflow_smoothness))
         )
 
     def initial_condition(self, x):
@@ -93,7 +94,7 @@ class SWEFlowRunner:
         return ic
 
     def run(self):
-        print('Writing output files to {}/*...'.format(self._save_dir))
+        print('Writing output files to {}'.format(self._save_dir))
         os.makedirs(self._save_dir, exist_ok=True)
 
         # Write solver parameters to file
