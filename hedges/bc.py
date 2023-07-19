@@ -1,14 +1,14 @@
 import numpy as np
 
 
-import fluxes
+from . import fluxes
 
 
 def transmissive_outflow(surface_flux=fluxes.lax_friedrichs_flux):
     """
-    Create a transmissive boundary by setting left and right ("ghost") states the same 
+    Create a transmissive boundary by setting left and right ("ghost") states the same
     and computing the corresponding surface flux.
-    
+
     For details see Section 9.2.5 of the book:
     - Eleuterio F. Toro (2001)
       Shock-Capturing Methods for Free-Surface Shallow Flows
@@ -19,7 +19,7 @@ def transmissive_outflow(surface_flux=fluxes.lax_friedrichs_flux):
     """
     def _flux_function(u_l, u_r, xx, t, f, f_prime):
         """
-    
+
         :param u_l:
         :param u_r:
         :param xx:
@@ -34,9 +34,9 @@ def transmissive_outflow(surface_flux=fluxes.lax_friedrichs_flux):
 
 def reflective_outflow(surface_flux=fluxes.lax_friedrichs_flux):
     """
-    Create a transmissive boundary by reflecting the velocity between left and right ("ghost") 
+    Create a transmissive boundary by reflecting the velocity between left and right ("ghost")
    and computing the corresponding surface flux.
-    
+
     For details see Section 9.2.5 of the book:
     - Eleuterio F. Toro (2001)
       Shock-Capturing Methods for Free-Surface Shallow Flows

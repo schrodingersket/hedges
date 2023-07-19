@@ -1,10 +1,8 @@
 import numpy as np
 from scipy import optimize
 
-import fluxes
-
-
-import hyperbolic_solver_1d
+from . import fluxes
+from . import hyperbolic_solver_1d
 
 
 class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):

@@ -7,11 +7,11 @@ import time
 import numpy as np
 
 
-import bc
-import fluxes
-import quadrature
-import rk
-import swe_1d
+from . import bc
+from . import fluxes
+from . import quadrature
+from . import rk
+from . import swe_1d
 
 
 class SWEFlowRunner:

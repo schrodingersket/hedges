@@ -5,9 +5,10 @@ import functools
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+
 from scipy import integrate
 
-import quadrature
+from . import quadrature
 
 
 class Hyperbolic1DSolver(abc.ABC):

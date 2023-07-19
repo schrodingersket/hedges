@@ -1,6 +1,6 @@
 import numpy as np
 
-import simulation
+from . import simulation
 
 # Physical parameters
 #
