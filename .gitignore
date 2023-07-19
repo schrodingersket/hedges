@@ -3,3 +3,7 @@ __pycache__
 *.gif
 out/
 .ipynb_checkpoints/
+hedges/_version.py
+*.egg-info/
+*.egg
+build/

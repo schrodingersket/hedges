@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=65", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hedges"
+dynamic = ["version"]
+description = "A Discontinuous Galerkin solver oriented toward prototyping and education"
+readme = "README.md"
+license = {text = "LGPL-2.1"}
+authors = [
+    { name = "schrodingersket", email = "schrodingersket@gmail.com" },
+]
+requires-python = ">=3.8"
+keywords = [
+    "Partial differential equations",
+    "Hyperbolic",
+    "Scientific computing",
+    "Scientific machine learning",
+    "Discontinuous Galerkin"
+]
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Scientific Computation",
+]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy",
+]
+
+[project.urls]
+Homepage = "https://github.com/schrodingersket/hedges"
+"Bug Tracker" = "https://github.com/schrodingersket/hedges/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = []
+
+[tool.setuptools_scm]
+write_to = "hedges/_version.py"
