@@ -32,7 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Mathematics",
-    "Topic :: Scientific/Engineering :: Scientific Computation",
+    "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
     "matplotlib",
