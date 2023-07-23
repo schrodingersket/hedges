@@ -38,28 +38,29 @@ def swe_bathymetry_derivative(x):
     return b_slope * np.ones(x.shape) + b_amplitude * b_smoothness/(1 + np.square(b_smoothness*x)) * np.exp(-np.square(b_smoothness*x))
 
 
-amplitude = np.linspace(0.01, 0.1, num=9)
-smoothness = np.linspace(0.5, 2.0, num=16)
+if __name__ == '__main__':
+    amplitude = np.linspace(0.01, 0.1, num=9)
+    smoothness = np.linspace(0.5, 2.0, num=16)
 
-for j, a in enumerate(amplitude):
-    for k, s in enumerate(smoothness):
-        runner = simulation.SWEFlowRunner(
-            b=swe_bathymetry,
-            b_x=swe_bathymetry_derivative,
-            initial_height=H0,
-            xlims=xspan,
-            tlims=tspan,
-            gravity=g,
-            inflow_amplitude=a,
-            inflow_smoothness=s,
-            inflow_peak_time=4.0,
-        )
-        print('Running simulation {}/{} with a={}, s={}...'.format(
-            (j+1)*(k+1),
-            len(amplitude) * len(smoothness),
-            a,
-            s,
-        ))
-        runner.run()
+    for j, a in enumerate(amplitude):
+        for k, s in enumerate(smoothness):
+            runner = simulation.SWEFlowRunner(
+                b=swe_bathymetry,
+                b_x=swe_bathymetry_derivative,
+                initial_height=H0,
+                xlims=xspan,
+                tlims=tspan,
+                gravity=g,
+                inflow_amplitude=a,
+                inflow_smoothness=s,
+                inflow_peak_time=4.0,
+            )
+            print('Running simulation {}/{} with a={}, s={}...'.format(
+                (j+1)*(k+1),
+                len(amplitude) * len(smoothness),
+                a,
+                s,
+            ))
+            runner.run()
 
-print('Simulation execution complete.')
+    print('Simulation execution complete.')
