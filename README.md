@@ -1,4 +1,5 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?urlpath=notebooks%2Fhedges%2Fmain.ipynb)
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?urlpath=notebooks%2Fmain.ipynb)
 
 # Hyperbolic Educational Discontinuous Galerkin Equation Solver
 
@@ -11,10 +12,10 @@ the 1D shallow water equations (SWE) with variable bathymetry, prescribed inflow
 ## Usage
 
 Once you've installed the dependencies listed in `requirements.txt` 
-(`pip install -r requirements.txt`), running `hedges/main.py` will generate a full 
+(`pip install -r requirements.txt`), running `main.py` will generate a full 
 animation of the SWE for several different variations on Gaussian inflows:
 
-```python hedges/main.py```
+```python main.py```
 
 Each simulation result is saved in a sub-directory of the `out` folder according to the format
 `<epoch timestamp>_<six-digit random hex>`; the simulation data itself is saved in `solution.csv`,
@@ -28,15 +29,27 @@ implementation for running several simulations, the following is a full example 
 running a single simulation for the purpose of experimentation/modification:
 
 ```python
+#!/usr/bin/env python3
+# coding: utf-8
+
+# # 1D Discontinuous Galerkin Shallow Water Solver
+# 
+# We solve the 1D Shallow Water Equations in conservative form:
+# 
+# \begin{align*}
+#     h_t + q_x &= 0 \\
+#     q_t + \left[ \frac{q^2}{h} + \frac{1}{2} g h^2 \right]_x &= -g h b_x - C_f \left(\frac{q}{h}\right)^2
+# \end{align*}
+# 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-import bc
-import fluxes
-import quadrature
-import rk
-import swe_1d
+import hedges.bc as bc
+import hedges.fluxes as fluxes
+import hedges.quadrature as quadrature
+import hedges.rk as rk
+import hedges.swe_1d as swe_1d
 
 
 # Physical parameters
@@ -45,21 +58,21 @@ g = 1.0  # gravity
 
 # Domain
 #
-tspan = (0.0, 5.0)
+tspan = (0.0, 4.0)
 xspan = (-1, 1)
 
 # Bathymetry parameters
 #
 b_smoothness = 0.1
-b_amplitude = 0.005
-b_slope = 0.05
+b_amplitude = 0.02
+b_slope = -0.05
 assert(b_smoothness > 0)
 
 # Inflow parameters
 #
 inflow_amplitude = 0.05
 inflow_smoothness = 1.0
-inflow_peak_time = 1.0
+inflow_peak_time = 2.0
 assert(inflow_amplitude > 0)
 
 # Initial waveheight
@@ -149,7 +162,6 @@ q_bc_ax.set_title('Boundary flow rate $q({}, t)$'.format(xl))
 plt.tight_layout()
 plt.show()
 
-
 # Instantiate solver with bathymetry
 #
 solver = swe_1d.ShallowWater1D(
@@ -196,8 +208,6 @@ ani.save(movie_name, progress_callback=lambda i, n: print(
 ) if i % 50 == 0 else None)
 print('Animation written to {}.'.format(movie_name))
 
-# Show solution animation
-#
 plt.show()
 ```
 
@@ -211,7 +221,7 @@ optionally override the default plotting behavior, with a reference implementati
 
 A Jupyter notebook is provided in this repository at `hedges/main.ipynb`, and may be viewed (and
 interacted with) at 
-[BinderHub](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?urlpath=notebooks%2Fhedges%2Fmain.ipynb).
+[BinderHub](https://mybinder.org/v2/gh/schrodingersket/hedges/HEAD?urlpath=notebooks%2Fmain.ipynb).
 
 ## Extending the Solver
 

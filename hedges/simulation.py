@@ -16,28 +16,24 @@ from . import swe_1d
 
 class SWEFlowRunner:
     """
-    Helper class for running several simulations in sequence or parallel.
+    Helper class for running several simulations of 1D SWE flow in sequence or parallel.
     """
     def __init__(
             self,
-            b,
-            b_x,
-            initial_height,
             xlims,
             tlims,
+            b,
+            b_x,
+            h0,
+            q_bc,
             gravity=9.81,
-            inflow_amplitude=0.05,
-            inflow_smoothness=1.0,
-            inflow_peak_time=1.0,
             save_dir='./out',
     ) -> None:
         self.gravity = gravity
-        self.inflow_amplitude = inflow_amplitude
-        self.inflow_smoothness = inflow_smoothness
-        self.inflow_peak_time = inflow_peak_time
         self.b = b
         self.b_x = b_x
-        self.initial_height = initial_height
+        self.q_bc = q_bc
+        self.h0 = h0
         self.xlims = xlims
         self.tlims = tlims
 
@@ -49,23 +45,6 @@ class SWEFlowRunner:
             '{}_{}'.format(int(time.time()), binascii.b2a_hex(os.urandom(4)).decode())
         )
 
-        assert(inflow_amplitude > 0)
-
-    def q_bc(self, t):
-        """
-        Describes a Gaussian inflow, where the function transitions to a constant value upon
-        attaining its maximum value.
-
-        :param t: Time
-        :return:
-        """
-        tt = np.array(t)
-        return self.inflow_amplitude * np.exp(
-            -np.square(
-                np.minimum(tt, self.inflow_peak_time * np.ones(tt.shape)) - self.inflow_peak_time
-            ) / (2 * np.square(self.inflow_smoothness))
-        )
-
     def initial_condition(self, x):
         """
         Creates initial conditions for (h, uh).
@@ -75,7 +54,7 @@ class SWEFlowRunner:
         """
         # Horizontal water surface
         #
-        initial_height = self.initial_height * np.ones(x.shape) - self.b(x)
+        initial_height = self.h0 * np.ones(x.shape) - self.b(x)
 
         # Start with whatever flow is prescribed by our inflow BC
         #
@@ -96,23 +75,6 @@ class SWEFlowRunner:
     def run(self):
         print('Writing output files to {}'.format(self._save_dir))
         os.makedirs(self._save_dir, exist_ok=True)
-
-        # Write solver parameters to file
-        #
-        with open(os.path.join(self._save_dir, 'parameters.csv'), 'w', newline='') as csvfile:
-            params = {
-                'gravity': self.gravity,
-                'inflow_amplitude': self.inflow_amplitude,
-                'inflow_smoothness': self.inflow_smoothness,
-                'inflow_peak_time': self.inflow_peak_time,
-                'xl': self.xlims[0],
-                'xr': self.xlims[1],
-                't0': self.tlims[0],
-                'tf': self.tlims[1],
-            }
-            writer = csv.DictWriter(csvfile, fieldnames=params.keys())
-            writer.writeheader()
-            writer.writerow(params)
 
         # Instantiate solver with bathymetry
         #
@@ -183,10 +145,8 @@ class SWEFlowRunner:
 
         # Save animation to file
         #
-        movie_name = os.path.join(self._save_dir, 'swe_1d.gif')
-        print('Writing movie to {}...'.format(movie_name))
+        return solution, ani
 
-        ani.save(movie_name, progress_callback=lambda i, n: print(
-            f'Saving animation frame {i + 1}/{n}'
-        ) if i % 50 == 0 else None)
-        print('Animation written to {}.'.format(movie_name))
+    @property
+    def save_dir(self):
+        return self._save_dir
