@@ -155,7 +155,7 @@ solution = solver.solve(
     initial_condition=initial_condition,
     intercell_flux=surface_flux,
     left_boundary_flux=swe_1d.ShallowWater1D.bc_prescribed_inflow(q_bc, gravity=g, surface_flux=surface_flux),
-    right_boundary_flux=bc.transmissive_outflow(surface_flux=surface_flux),
+    right_boundary_flux=bc.transmissive_boundary(surface_flux=surface_flux),
     quad_rule=quadrature.gll,
     **{
         'method': rk.SSPRK33,

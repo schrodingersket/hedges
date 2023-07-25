@@ -305,4 +305,4 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
 
             return h, q
 
-        return bc.bc_dirichlet(qbc, surface_flux=surface_flux, direction=bc.Direction.UPSTREAM)
+        return bc.dirichlet_boundary(qbc, surface_flux=surface_flux, direction=bc.Direction.UPSTREAM)

@@ -11,7 +11,7 @@ class Direction(enum.Enum):
     DOWNSTREAM = 2
 
 
-def transmissive_outflow(surface_flux=fluxes.lax_friedrichs_flux):
+def transmissive_boundary(surface_flux=fluxes.lax_friedrichs_flux, direction=Direction.UPSTREAM):
     """
     Create a transmissive boundary by setting left and right ("ghost") states the same
     and computing the corresponding surface flux.
@@ -23,23 +23,18 @@ def transmissive_outflow(surface_flux=fluxes.lax_friedrichs_flux):
       ISBN 0471987662
 
     :param surface_flux: Function used to compute numerical flux between adjacent cell states.
+    :param direction: Boundary at which condition is implemented. Default is left boundary.
     """
     def _flux_function(u_l, u_r, xx, t, f, f_prime):
-        """
-
-        :param u_l:
-        :param u_r:
-        :param xx:
-        :param t:
-        :param f:
-        :param f_prime:
-        :return:
-        """
-        return surface_flux(u_l, u_l, xx, t, f, f_prime)
+        if direction == Direction.UPSTREAM:
+            return surface_flux(u_l, u_l, xx, t, f, f_prime)
+        else:
+            return surface_flux(u_r, u_r, xx, t, f, f_prime)
 
     return _flux_function
 
-def reflective_outflow(surface_flux=fluxes.lax_friedrichs_flux):
+
+def reflective_boundary(surface_flux=fluxes.lax_friedrichs_flux, direction=Direction.UPSTREAM):
     """
     Create a transmissive boundary by reflecting the velocity between left and right ("ghost")
    and computing the corresponding surface flux.
@@ -51,16 +46,20 @@ def reflective_outflow(surface_flux=fluxes.lax_friedrichs_flux):
       ISBN 0471987662
 
     :param surface_flux: Function used to compute numerical flux between adjacent cell states.
+    :param direction: Boundary at which condition is implemented. Default is left boundary.
     """
     def _flux_function(u_l, u_r, xx, t, f, f_prime):
-        h_l, q_l = u_l
-
-        return surface_flux(u_l, np.array((h_l, -q_l)), xx, t, f, f_prime)
+        if direction == Direction.UPSTREAM:
+            h_l, q_l = u_l
+            return surface_flux(u_l, np.array((h_l, -q_l)), xx, t, f, f_prime)
+        else:
+            h_r, q_r = u_r
+            return surface_flux(np.array((h_r, -q_r)), u_r, xx, t, f, f_prime)
 
     return _flux_function
 
 
-def bc_dirichlet(g, surface_flux=fluxes.lax_friedrichs_flux, direction=Direction.UPSTREAM):
+def dirichlet_boundary(g, surface_flux=fluxes.lax_friedrichs_flux, direction=Direction.UPSTREAM):
     """
     Maintains a (possibly time-dependent) prescribed solution at the inflow boundary.
 
