@@ -1,7 +1,14 @@
+import enum
+
 import numpy as np
 
 
 from . import fluxes
+
+
+class Direction(enum.Enum):
+    UPSTREAM = 1
+    DOWNSTREAM = 2
 
 
 def transmissive_outflow(surface_flux=fluxes.lax_friedrichs_flux):
@@ -49,5 +56,31 @@ def reflective_outflow(surface_flux=fluxes.lax_friedrichs_flux):
         h_l, q_l = u_l
 
         return surface_flux(u_l, np.array((h_l, -q_l)), xx, t, f, f_prime)
+
+    return _flux_function
+
+
+def bc_dirichlet(g, surface_flux=fluxes.lax_friedrichs_flux, direction=Direction.UPSTREAM):
+    """
+    Maintains a (possibly time-dependent) prescribed solution at the inflow boundary.
+
+    :param g: A function with time as its first parameter, which should return the prescribed
+              solution values at a particular time. The left and right cell interface values are
+              passed to this function as named parameters.
+    :param surface_flux: Function used to compute numerical flux between adjacent cell states.
+    :param direction: Boundary at which condition is implemented. Default is left boundary.
+    :return:
+    """
+    def _flux_function(u_l, u_r, xx, t, f, f_prime):
+        # Evaluate prescribed solution at t
+        #
+        u = g(t, u_l=u_l, u_r=u_r)
+
+        # Return numerical flux values
+        #
+        if direction == Direction.UPSTREAM:
+            return surface_flux(np.array(u), u_r, xx, t, f, f_prime)
+        else:
+            return surface_flux(u_l, np.array(u), xx, t, f, f_prime)
 
     return _flux_function

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import optimize
 
+from . import bc
 from . import fluxes
 from . import hyperbolic_solver_1d
 
@@ -271,16 +272,17 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
     @staticmethod
     def bc_prescribed_inflow(q_in, gravity=9.81, surface_flux=fluxes.lax_friedrichs_flux):
         """
-        Maintains a (possibly time-dependent) prescribed rate of flow at the inflow boundary by setting
-        backward characteristics for upwinded values and cell values equal at the leftmost boundary.
+        Maintains a (possibly time-dependent) prescribed rate of flow at the inflow boundary by
+        setting backward characteristics for upwinded values and cell values equal at the leftmost
+        boundary.
 
-        :param q_in: A function with time as its single parameter, which should return the rate of flow
-                     at a particular time.
+        :param q_in: A function with time as its single parameter which should return the rate of
+                     flow at a particular time.
         :param gravity: Gravitational constant.
         :param surface_flux: Function used to compute numerical flux between adjacent cell states.
         :return:
         """
-        def _flux_function(u_l, u_r, xx, t, f, f_prime):
+        def qbc(t, u_l, u_r):
             h_r, q_r = u_r
 
             # Backward characteristic
@@ -291,7 +293,7 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
             #
             q = q_in(t)
 
-            # We solve for the square root of h to avoid numerical issues with Newton's method
+            # We solve for the square root of h to mitigate numerical issues with Newton's method
             #
             sqrt_h = optimize.newton(
                 lambda hh: q / np.square(hh) - 2 * np.sqrt(gravity) * hh - w_b,
@@ -299,9 +301,8 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
                 # fprime=lambda hh: -2 * q / hh ** 3 - 2 * np.sqrt(g),
                 maxiter=500
             )
-
             h = np.square(sqrt_h)
 
-            return surface_flux(np.array((h, q)), u_r, xx, t, f, f_prime)
+            return h, q
 
-        return _flux_function
+        return bc.bc_dirichlet(qbc, surface_flux=surface_flux, direction=bc.Direction.UPSTREAM)
