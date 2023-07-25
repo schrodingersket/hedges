@@ -27,9 +27,9 @@ def transmissive_boundary(surface_flux=fluxes.lax_friedrichs_flux, direction=Dir
     """
     def _flux_function(u_l, u_r, xx, t, f, f_prime):
         if direction == Direction.UPSTREAM:
-            return surface_flux(u_l, u_l, xx, t, f, f_prime)
-        else:
             return surface_flux(u_r, u_r, xx, t, f, f_prime)
+        else:
+            return surface_flux(u_l, u_l, xx, t, f, f_prime)
 
     return _flux_function
 
@@ -50,11 +50,11 @@ def reflective_boundary(surface_flux=fluxes.lax_friedrichs_flux, direction=Direc
     """
     def _flux_function(u_l, u_r, xx, t, f, f_prime):
         if direction == Direction.UPSTREAM:
-            h_l, q_l = u_l
-            return surface_flux(u_l, np.array((h_l, -q_l)), xx, t, f, f_prime)
-        else:
             h_r, q_r = u_r
             return surface_flux(np.array((h_r, -q_r)), u_r, xx, t, f, f_prime)
+        else:
+            h_l, q_l = u_l
+            return surface_flux(u_l, np.array((h_l, -q_l)), xx, t, f, f_prime)
 
     return _flux_function
 
