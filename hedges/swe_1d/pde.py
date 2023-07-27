@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import optimize
 
-from . import bc
-from . import fluxes
-from . import hyperbolic_solver_1d
+from hedges import bc
+from hedges import fluxes
+from hedges import hyperbolic_solver_1d
 
 
 class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
@@ -305,4 +305,8 @@ class ShallowWater1D(hyperbolic_solver_1d.Hyperbolic1DSolver):
 
             return h, q
 
-        return bc.dirichlet_boundary(qbc, surface_flux=surface_flux, direction=bc.Direction.UPSTREAM)
+        return bc.dirichlet_boundary(
+            qbc,
+            surface_flux=surface_flux,
+            direction=bc.Direction.UPSTREAM,
+        )

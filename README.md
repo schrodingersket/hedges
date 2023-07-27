@@ -29,18 +29,21 @@ implementation for running several simulations, the following is a full example 
 running a single simulation for the purpose of experimentation/modification:
 
 ```python
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # coding: utf-8
 
 # # 1D Discontinuous Galerkin Shallow Water Solver
-# 
+#
 # We solve the 1D Shallow Water Equations in conservative form:
-# 
+#
 # \begin{align*}
 #     h_t + q_x &= 0 \\
 #     q_t + \left[ \frac{q^2}{h} + \frac{1}{2} g h^2 \right]_x &= -g h b_x - C_f \left(\frac{q}{h}\right)^2
 # \end{align*}
-# 
+#
+# We neglect friction so that $C_f = 0$.
+#
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -49,7 +52,7 @@ import hedges.bc as bc
 import hedges.fluxes as fluxes
 import hedges.quadrature as quadrature
 import hedges.rk as rk
-import hedges.swe_1d as swe_1d
+import hedges.swe_1d.pde as pde
 
 
 # Physical parameters
@@ -65,7 +68,7 @@ xspan = (-1, 1)
 #
 b_smoothness = 0.1
 b_amplitude = 0.02
-b_slope = -0.05
+b_slope = 0.05
 assert(b_smoothness > 0)
 
 # Inflow parameters
@@ -85,14 +88,16 @@ def swe_bathymetry(x):
     """
     Describes bathymetry with an upslope which is perturbed by a hyperbolic tangent function.
     """
-    return b_slope * x + b_amplitude * np.arctan(x/b_smoothness)
+    return b_slope * x + b_amplitude * np.arctan(x / b_smoothness)
 
 
 def swe_bathymetry_derivative(x):
     """
     Derivative of swe_bathymetry
     """
-    return b_slope * np.ones(x.shape) + b_amplitude * b_smoothness/(1 + np.square(b_smoothness*x)) * np.exp(-np.square(b_smoothness*x))
+    return b_slope + b_amplitude / (
+            b_smoothness * (1 + np.square(x / b_smoothness))
+    )
 
 
 def q_bc(t):
@@ -103,8 +108,12 @@ def q_bc(t):
     :param t: Time
     :return:
     """
-    tt = np.array(t)
-    return inflow_amplitude * np.exp( -np.square(np.minimum(tt, inflow_peak_time * np.ones(tt.shape)) - inflow_peak_time) / (2 * np.square(inflow_smoothness)) )
+    t_np = np.array(t)
+    return inflow_amplitude * np.exp(
+        -np.square(
+            np.minimum(t_np, inflow_peak_time * np.ones(t_np.shape)) - inflow_peak_time
+        ) / (2 * np.square(inflow_smoothness))
+    )
 
 
 def initial_condition(x):
@@ -115,19 +124,20 @@ def initial_condition(x):
     :return:
     """
     initial_height = h0 * np.ones(x.shape) - swe_bathymetry(x)  # horizontal water surface
-    initial_flow = q_bc(0) * np.ones(x.shape)  # Start with whatever flow is prescribed by our inflow BC
+    initial_flow = q_bc(0) * np.ones(x.shape)  # Start with inflow BC
 
-    ic = np.array((
+    initial_values = np.array((
         initial_height,
         initial_flow,
     ))
 
     # Verify consistency of initial condition
     #
-    if not np.allclose(ic[1][0], q_bc(0)):
+    if not np.allclose(initial_values[1][0], q_bc(0)):
         raise ValueError('Initial flow condition must match prescribed inflow.')
 
-    return ic
+    return initial_values
+
 
 # Plot bathymetry and ICs
 #
@@ -164,7 +174,7 @@ plt.show()
 
 # Instantiate solver with bathymetry
 #
-solver = swe_1d.ShallowWater1D(
+solver = pde.ShallowWater1D(
     b=swe_bathymetry,
     b_x=swe_bathymetry_derivative,
     gravity=g
@@ -182,8 +192,15 @@ solution = solver.solve(
     polydeg=4,
     initial_condition=initial_condition,
     intercell_flux=surface_flux,
-    left_boundary_flux=swe_1d.ShallowWater1D.bc_prescribed_inflow(q_bc, gravity=g, surface_flux=surface_flux),
-    right_boundary_flux=bc.transmissive_outflow(surface_flux=surface_flux),
+    left_boundary_flux=pde.ShallowWater1D.bc_prescribed_inflow(
+        q_bc,
+        gravity=g,
+        surface_flux=surface_flux,
+    ),
+    right_boundary_flux=bc.transmissive_boundary(
+        surface_flux=surface_flux,
+        direction=bc.Direction.DOWNSTREAM,
+    ),
     quad_rule=quadrature.gll,
     **{
         'method': rk.SSPRK33,
