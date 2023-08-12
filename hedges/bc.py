@@ -83,3 +83,16 @@ def dirichlet_boundary(g, surface_flux=fluxes.lax_friedrichs_flux, direction=Dir
             return surface_flux(u_l, np.array(u), xx, t, f, f_prime)
 
     return _flux_function
+
+
+def periodic_boundary(surface_flux=fluxes.lax_friedrichs_flux):
+    """
+    Periodic boundary conditions.
+
+    :param surface_flux: Function used to compute numerical flux between adjacent cell states.
+    :return:
+    """
+    def _flux_function(u_l, u_r, xx, t, f, f_prime):
+        return surface_flux(u_l, u_r, xx, t, f, f_prime)
+
+    return _flux_function
